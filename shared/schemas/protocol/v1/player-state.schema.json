@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/player-state.schema.json",
+  "title": "PlayerState",
+  "type": "object",
+  "required": ["id", "x", "y", "vx", "vy", "state"],
+  "properties": {
+    "id": {"type": "string"},
+    "x": {"type": "number"},
+    "y": {"type": "number"},
+    "vx": {"type": "number"},
+    "vy": {"type": "number"},
+    "state": {"type": "string", "enum": ["idle", "alive", "dead"]}
+  },
+  "additionalProperties": false
+}

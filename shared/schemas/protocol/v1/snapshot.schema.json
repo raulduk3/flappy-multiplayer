@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/snapshot.schema.json",
+  "title": "Snapshot",
+  "type": "object",
+  "required": ["type", "protocol_version", "server_tick", "players", "pipes_window", "leaderboard_topN"],
+  "properties": {
+    "type": {"const": "snapshot"},
+    "protocol_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "server_tick": {"type": "integer", "minimum": 0},
+    "players": {"type": "array", "items": {"$ref": "player-state.schema.json"}, "maxItems": 100},
+    "pipes_window": {"$ref": "pipes-window.schema.json"},
+    "leaderboard_topN": {"type": "array", "items": {"$ref": "leaderboard-entry.schema.json"}, "maxItems": 10}
+  },
+  "additionalProperties": false
+}

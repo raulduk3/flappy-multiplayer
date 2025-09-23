@@ -1,8 +1,8 @@
 
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Real-time Multiplayer WebSocket Protocol
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `001-a-real-time` | **Date**: 2025-09-23 | **Spec**: /Users/richardalvarez/Dev/flappy-multiplayer/specs/001-a-real-time/spec.md
+**Input**: Feature specification from `/specs/001-a-real-time/spec.md`
 
 ## Execution Flow (/plan command scope)
 ```
@@ -31,23 +31,32 @@
 - Phase 3-4: Implementation execution (manual or via tools)
 
 ## Summary
-[Extract from feature spec: primary requirement + technical approach from research]
+Define an authoritative, deterministic WebSocket protocol for real-time multiplayer Flappy.
+Clients may only send `input` and `engrave` messages. Server broadcasts `snapshot`, `runStart`,
+and `runEnd`, ordered by `server_tick`. All messages include `protocol_version` and conform to
+JSON Schemas in `shared/`. Protocol is idempotent and replayable. Handshake uses `hello`/`welcome`.
 
 ## Technical Context
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: TypeScript/Node.js (server), TypeScript/Next.js (client)  
+**Primary Dependencies**: ws (or uWebSockets.js), Next.js, Tailwind, Jest  
+**Storage**: N/A for protocol; ephemeral in-memory state; leaderboard persistence out-of-scope  
+**Testing**: Jest (unit, integration, contract tests with JSON Schema validation)  
+**Target Platform**: Web frontend + Node.js backend
+**Project Type**: web (frontend + backend + shared)  
+**Performance Goals**: Server sim tick 60 Hz; client render any Hz; input-to-effect p95 ≤150ms  
+**Constraints**: Server-authoritative, deterministic physics; Secure WebSockets (wss) in prod; JSON payloads ≤2KB typical  
+**Scale/Scope**: Rooms up to dozens of concurrent players; global scale deferred
 
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- TDD with Jest enforced: All protocol changes accompanied by tests. PASS
+- Server-authoritative deterministic gameplay: Protocol defines server_tick ordering and input seq dedupe. PASS
+- Minimal accessible UI: Protocol agnostic; UI guidance unaffected. PASS
+- Secure communications: Requires wss in production; handshake defined. PASS
+- Shared contracts and versioning: JSON Schemas in `shared/` and SemVer protocol. PASS
+
+Gate result: CONDITIONAL (pending research completion). Research items must be finalized before implementation can proceed. Note: Non-critical deferrals captured in research.md (rate-limit thresholds, name policy, leaderboard tie-break) - NOW RESOLVED.
 
 ## Project Structure
 
@@ -99,7 +108,7 @@ ios/ or android/
 └── [platform-specific structure]
 ```
 
-**Structure Decision**: [DEFAULT to Option 1 unless Technical Context indicates web/mobile app]
+**Structure Decision**: Option 2 (Web application: backend/, frontend/, shared/)
 
 ## Phase 0: Outline & Research
 1. **Extract unknowns from Technical Context** above:
@@ -120,7 +129,7 @@ ios/ or android/
    - Rationale: [why chosen]
    - Alternatives considered: [what else evaluated]
 
-**Output**: research.md with all NEEDS CLARIFICATION resolved
+**Output**: research.md with all previously marked NEEDS CLARIFICATION resolved
 
 ## Phase 1: Design & Contracts
 *Prerequisites: research.md complete*
@@ -195,18 +204,18 @@ ios/ or android/
 *This checklist is updated during execution flow*
 
 **Phase Status**:
-- [ ] Phase 0: Research complete (/plan command)
-- [ ] Phase 1: Design complete (/plan command)
-- [ ] Phase 2: Task planning complete (/plan command - describe approach only)
-- [ ] Phase 3: Tasks generated (/tasks command)
+- [x] Phase 0: Research complete (/plan command)
+- [x] Phase 1: Design complete (/plan command)
+- [x] Phase 2: Task planning complete (/plan command - describe approach only)
+- [X] Phase 3: Tasks generated (/tasks command)
 - [ ] Phase 4: Implementation complete
 - [ ] Phase 5: Validation passed
 
 **Gate Status**:
-- [ ] Initial Constitution Check: PASS
-- [ ] Post-Design Constitution Check: PASS
+- [x] Initial Constitution Check: PASS
+- [x] Post-Design Constitution Check: PASS
 - [ ] All NEEDS CLARIFICATION resolved
-- [ ] Complexity deviations documented
+- [x] Complexity deviations documented (none)
 
 ---
 *Based on Constitution v1.0.0 - See `/.specify/memory/constitution.md`*

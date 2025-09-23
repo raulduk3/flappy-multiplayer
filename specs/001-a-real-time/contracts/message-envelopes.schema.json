@@ -1,0 +1,251 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/message-envelopes.schema.json",
+  "title": "Message Envelopes",
+  "type": "object",
+  "oneOf": [
+    {"$ref": "#/definitions/Hello"},
+    {"$ref": "#/definitions/Welcome"},
+    {"$ref": "#/definitions/Error"},
+    {"$ref": "#/definitions/Input"},
+    {"$ref": "#/definitions/Engrave"},
+    {"$ref": "#/definitions/Snapshot"},
+    {"$ref": "#/definitions/RunStart"},
+    {"$ref": "#/definitions/RunEnd"}
+  ],
+  "definitions": {
+    "ProtocolVersion": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "Hello": {
+      "type": "object",
+      "required": ["type", "protocol_version"],
+      "properties": {
+        "type": {"const": "hello"},
+        "protocol_version": {"$ref": "#/definitions/ProtocolVersion"},
+        "client_info": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "client": {"type": "string"},
+            "version": {"type": "string"}
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Welcome": {
+      "type": "object",
+      "required": ["type", "protocol_version"],
+      "properties": {
+        "type": {"const": "welcome"},
+        "protocol_version": {"$ref": "#/definitions/ProtocolVersion"},
+        "server_info": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "version": {"type": "string"}
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "required": ["type", "protocol_version", "code", "message"],
+      "properties": {
+        "type": {"const": "error"},
+        "protocol_version": {"$ref": "#/definitions/ProtocolVersion"},
+        "code": {
+          "type": "string",
+          "enum": [
+            "validation_error",
+            "rate_limit_exceeded",
+            "incompatible_protocol",
+            "unauthorized",
+            "internal_error",
+            "bad_request",
+            "resource_exhausted",
+            "not_found",
+            "conflict",
+            "unsupported_action"
+          ]
+        },
+        "message": {"type": "string"},
+        "details": {"type": "object"},
+        "upgrade_hint": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "Input": {
+      "type": "object",
+      "required": ["type", "protocol_version", "seq", "action", "ts"],
+      "properties": {
+        "type": {"const": "input"},
+        "protocol_version": {"$ref": "#/definitions/ProtocolVersion"},
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonically increasing sequence number per client connection"
+        },
+        "action": {"type": "string", "enum": ["flap", "start", "join"]},
+        "ts": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Client timestamp in Unix epoch milliseconds (UTC)"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Rate limited to maximum 10 inputs per second per client connection"
+    },
+    "Engrave": {
+      "type": "object",
+      "required": ["type", "protocol_version", "run_id", "name"],
+      "properties": {
+        "type": {"const": "engrave"},
+        "protocol_version": {"$ref": "#/definitions/ProtocolVersion"},
+        "run_id": {"type": "string"},
+        "name": {
+          "type": "string",
+            "minLength": 1,
+            "maxLength": 24,
+            "pattern": "^[\\p{L}\\p{N}_\\-]+$",
+          "description": "Player name using alphanumeric characters, underscores, and hyphens only. Profanity filtering applied server-side."
+        }
+      },
+      "additionalProperties": false
+    },
+    "PlayerState": {
+      "type": "object",
+      "required": ["id", "x", "y", "vx", "vy", "state"],
+      "properties": {
+        "id": {"type": "string"},
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "vx": {"type": "number"},
+        "vy": {"type": "number"},
+        "state": {"type": "string", "enum": ["idle", "alive", "dead"]}
+      },
+      "additionalProperties": false
+    },
+    "PipesWindow": {
+      "type": "object",
+      "required": ["x", "gapY", "gapH", "id"],
+      "properties": {
+        "x": {
+          "type": "array",
+          "items": {"type": "number"},
+          "maxItems": 50,
+          "description": "X positions of pipes in view window"
+        },
+        "gapY": {
+          "type": "array",
+          "items": {"type": "number"},
+          "maxItems": 50,
+          "description": "Y center positions of pipe gaps (aligned with x array by index)"
+        },
+        "gapH": {
+          "type": "array",
+          "items": {"type": "number", "minimum": 0},
+          "maxItems": 50,
+          "description": "Heights of pipe gaps (aligned with x array by index)"
+        },
+        "id": {
+          "type": "array",
+          "items": {"type": "string"},
+          "maxItems": 50,
+          "description": "Unique identifiers for each pipe (aligned with x array by index)"
+        }
+      },
+      "additionalProperties": false,
+      "description": "All arrays must have the same length and are aligned by index"
+    },
+    "LeaderboardEntry": {
+      "type": "object",
+      "required": ["player_id", "name", "score", "rank", "at"],
+      "properties": {
+        "player_id": {"type": "string"},
+        "name": {"type": "string"},
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Player score. Ties broken by earliest achievement time (lower server_tick wins)"
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Current ranking position (1-based)"
+        },
+        "at": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Server tick when this entry was recorded"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Snapshot": {
+      "type": "object",
+      "required": ["type", "protocol_version", "server_tick", "players", "pipes_window", "leaderboard_topN"],
+      "properties": {
+        "type": {"const": "snapshot"},
+        "protocol_version": {"$ref": "#/definitions/ProtocolVersion"},
+        "server_tick": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonically increasing server tick counter (60 Hz)"
+        },
+        "players": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/PlayerState"},
+          "maxItems": 100,
+          "description": "Current state of all active players in the room"
+        },
+        "pipes_window": {"$ref": "#/definitions/PipesWindow"},
+        "leaderboard_topN": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/LeaderboardEntry"},
+          "maxItems": 10,
+          "description": "Top N players by score (typically top 10)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RunStart": {
+      "type": "object",
+      "required": ["type", "protocol_version", "run_id", "room_id", "player_id", "start_time"],
+      "properties": {
+        "type": {"const": "runStart"},
+        "protocol_version": {"$ref": "#/definitions/ProtocolVersion"},
+        "run_id": {"type": "string"},
+        "room_id": {"type": "string"},
+        "player_id": {"type": "string"},
+        "start_time": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Run start time in Unix epoch milliseconds (UTC)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RunEnd": {
+      "type": "object",
+      "required": ["type", "protocol_version", "run_id", "end_time", "score", "cause"],
+      "properties": {
+        "type": {"const": "runEnd"},
+        "protocol_version": {"$ref": "#/definitions/ProtocolVersion"},
+        "run_id": {"type": "string"},
+        "end_time": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Run end time in Unix epoch milliseconds (UTC)"
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Final score achieved in this run"
+        },
+        "cause": {"type": "string", "enum": ["collision", "timeout", "disconnect", "server_shutdown"]}
+      },
+      "additionalProperties": false
+    }
+  }
+}
