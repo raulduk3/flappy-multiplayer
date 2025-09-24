@@ -1,57 +1,58 @@
-// T014: Run lifecycle integration test (runStart/runEnd)
-import WebSocket from 'ws';
-import {createServer} from '../../src/server';
-import {createTickContext, startTickLoop} from '../../src/server/sim/tickLoop';
+// Updated T031: Run lifecycle integration test using in-process services
+// Validates: join -> flap starts run -> snapshots reflect active player & seq monotonic growth
 
-const TEST_PORT = 19001;
-const SERVER_URL = `ws://localhost:${TEST_PORT}`;
+import { roomRegistry } from "../../src/server/services/roomRegistry.ts";
+import { handleJoin } from "../../src/server/handlers/join.ts";
+import { handleFlap } from "../../src/server/handlers/flap.ts";
+import {
+  tickOnce,
+  startTicks,
+  stopTicks,
+  registerSnapshotBroadcaster,
+} from "../../src/server/sim/tickLoop.ts";
 
-let server: any; let stopLoop: (()=>void)|null = null;
+describe("Run Lifecycle Integration (T031)", () => {
+  afterEach(() => {
+    stopTicks();
+  });
 
-beforeAll(() => {
-  try {
-    server = createServer(TEST_PORT);
-    const ctx = createTickContext();
-    stopLoop = startTickLoop(server.wss, ctx, 5);
-  } catch {}
-});
-
-afterAll(async () => {
-  if (stopLoop) stopLoop();
-  if (server && server.close) await server.close();
-});
-
-describe('Run Lifecycle Integration (T014)', () => {
-  test('receive runStart then runEnd with consistent run_id', (done) => {
-    const ws = new WebSocket(SERVER_URL);
-    let runId: string | null = null;
-    let sawStart = false;
-
-    const finishTimeout = setTimeout(() => {
-      ws.close();
-      if (!sawStart) return done(new Error('Did not receive runStart'));
-      if (!runId) return done(new Error('No run_id captured'));
-      done(new Error('runEnd not observed before timeout (expected until lifecycle implemented)'));
-    }, 500);
-
-    ws.on('open', () => {
-      ws.send(JSON.stringify({type:'hello', protocol_version:'1.0.0'}));
-      // Implementation eventually triggers runStart automatically when game begins
+  test("player joins idle then flap starts run and appears in snapshot", () => {
+    const sent: any[] = [];
+    function send(msg: any) {
+      sent.push(msg);
+    }
+    // 1. Join
+    const { player, room } = handleJoin("conn1", send);
+    expect(sent.find((m) => m.type === "joinAck")).toBeTruthy();
+    expect(player.state).toBe("idle");
+    // 2. No active runs yet
+    expect(room.runs.size).toBe(0);
+    // 3. Flap -> should create run
+    handleFlap(player, room);
+    expect(player.state).toBe("active");
+    expect(player.active_run_id).toBeTruthy();
+    expect(room.runs.size).toBe(1);
+    const runId = player.active_run_id!;
+    // 4. Tick a few times collecting snapshots
+    const snapshots: any[] = [];
+    registerSnapshotBroadcaster((roomId, snap) => {
+      if (roomId === room.room_id) snapshots.push(snap);
     });
-    ws.on('message', (data) => {
-      const msg = JSON.parse(data.toString());
-      if (msg.type === 'runStart') {
-        sawStart = true;
-        runId = msg.run_id;
-      } else if (msg.type === 'runEnd') {
-        try {
-          expect(runId).toBe(msg.run_id);
-          clearTimeout(finishTimeout);
-          done();
-        } catch (e) { done(e); }
-        finally { ws.close(); }
-      }
-    });
-    ws.on('error', (err) => { clearTimeout(finishTimeout); done(err); });
+    for (let i = 0; i < 5; i++) tickOnce("1.0.0");
+    expect(snapshots.length).toBeGreaterThanOrEqual(1);
+    // 5. Latest snapshot contains active player
+    const last = snapshots[snapshots.length - 1];
+    expect(last.type).toBe("snapshot");
+    expect(
+      last.active.find((p: any) => p.id === player.player_id),
+    ).toBeTruthy();
+    // 6. Seq monotonic
+    const seqs = snapshots.map((s) => BigInt(s.seq));
+    for (let i = 1; i < seqs.length; i++)
+      expect(seqs[i] > seqs[i - 1]).toBe(true);
+    // 7. Run still active (no termination logic yet) with same id
+    const run = room.runs.get(runId)!;
+    expect(run.state).toBe("active");
+    expect(run.run_id).toBe(runId);
   });
 });

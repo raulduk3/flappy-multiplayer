@@ -35,7 +35,9 @@
     "clean:empty": "shx find . -- -type f -empty -delete"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "concurrently": "^8.2.2",
+    "ts-jest": "^29.4.4",
     "typescript": "^5.2.0"
   },
   "engines": {

@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "engrave-ack.schema.json",
+  "title": "EngraveAck",
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "engraveAck" },
+        "protocol_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "run_id": { "type": "string" },
+        "accepted": { "const": true },
+        "name": { "type": "string", "minLength": 1, "maxLength": 24 }
+      },
+      "required": ["type", "protocol_version", "run_id", "accepted", "name"],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "engraveAck" },
+        "protocol_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "run_id": { "type": "string" },
+        "accepted": { "const": false },
+        "reason": {
+          "type": "string",
+          "enum": ["timeout", "filtered", "window-expired", "immutable"]
+        }
+      },
+      "required": ["type", "protocol_version", "run_id", "accepted", "reason"],
+      "additionalProperties": false
+    }
+  ]
+}

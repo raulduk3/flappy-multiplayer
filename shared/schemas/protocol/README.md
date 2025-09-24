@@ -3,12 +3,14 @@
 This directory contains versioned JSON Schemas for the real-time multiplayer protocol.
 
 ## Versioning
+
 - Semantic Versioning (SemVer) is used: MAJOR.MINOR.PATCH
 - MAJOR: Breaking schema changes (remove field, change type, rename)
 - MINOR: Backward-compatible additions (new optional field, new message type, new enum value with safe default)
 - PATCH: Clarifications, description updates, tighter (but still backward-compatible) constraints
 
 ## Layout
+
 ```
 protocol/
   README.md
@@ -30,6 +32,7 @@ protocol/
 ```
 
 ## Authoring Rules
+
 1. Each schema must include `$id` and `$schema` (draft-07).
 2. All message schemas must include `protocol_version` with a pattern `^1\.\d+\.\d+$` for MAJOR 1.
 3. Descriptions must clarify semantics, not implementation details.
@@ -37,8 +40,9 @@ protocol/
 5. Avoid `additionalProperties: true` unless explicitly required for forward compatibility.
 
 ## Capabilities (FR-023)
+
 The capabilities request/response pair enables runtime discovery of supported features within the same MAJOR version.
 
 ## Validation
-Schemas are compiled once at server start (Ajv strict mode) and reused for each message.
 
+Schemas are compiled once at server start (Ajv strict mode) and reused for each message.

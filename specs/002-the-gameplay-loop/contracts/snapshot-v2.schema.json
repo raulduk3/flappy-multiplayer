@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "snapshot-v2.schema.json",
+  "title": "SnapshotV2",
+  "type": "object",
+  "required": [
+    "type",
+    "protocol_version",
+    "room_id",
+    "seq",
+    "active",
+    "top",
+    "pipes"
+  ],
+  "properties": {
+    "type": { "const": "snapshot" },
+    "protocol_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "room_id": { "type": "string" },
+    "seq": { "type": "string", "pattern": "^[0-9]+$" },
+    "active": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "is_bot", "x", "y", "vy", "score", "pipes_passed"],
+        "properties": {
+          "id": { "type": "string" },
+          "is_bot": { "type": "boolean" },
+          "x": { "type": "number" },
+          "y": { "type": "number" },
+          "vy": { "type": "number" },
+          "score": { "type": "number", "minimum": 0 },
+          "pipes_passed": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "top": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": [
+          "run_id",
+          "score",
+          "distance",
+          "pipes_passed",
+          "elapsed_ms"
+        ],
+        "properties": {
+          "run_id": { "type": "string" },
+          "name": { "type": "string" },
+          "score": { "type": "number", "minimum": 0 },
+          "distance": { "type": "number", "minimum": 0 },
+          "pipes_passed": { "type": "integer", "minimum": 0 },
+          "elapsed_ms": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "pipes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "x", "gap_y", "gap_height"],
+        "properties": {
+          "id": { "type": "integer", "minimum": 0 },
+          "x": { "type": "number" },
+          "gap_y": { "type": "number" },
+          "gap_height": { "type": "number", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

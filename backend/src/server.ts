@@ -1,6 +1,6 @@
 // T024: Server bootstrap
-import {WebSocketServer} from 'ws';
-import {attachRouter, createConnectionState} from './ws/router.js';
+import { WebSocketServer } from "ws";
+import { attachRouter, createConnectionState } from "./ws/router.ts";
 
 export interface RunningServer {
   wss: WebSocketServer;
@@ -9,8 +9,8 @@ export interface RunningServer {
 }
 
 export function createServer(port: number = 19001): RunningServer {
-  const wss = new WebSocketServer({port});
-  wss.on('connection', (ws) => {
+  const wss = new WebSocketServer({ port });
+  wss.on("connection", (ws) => {
     const state = createConnectionState();
     (ws as any).state = state; // expose for tick loop gating
     attachRouter(ws, state);
@@ -18,8 +18,9 @@ export function createServer(port: number = 19001): RunningServer {
   return {
     wss,
     port,
-    close: () => new Promise((resolve) => {
-      wss.close(() => resolve());
-    })
+    close: () =>
+      new Promise((resolve) => {
+        wss.close(() => resolve());
+      }),
   };
 }

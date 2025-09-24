@@ -5,9 +5,13 @@
   "type": "object",
   "required": ["type", "protocol_version", "supported_features"],
   "properties": {
-    "type": {"const": "capabilities_response"},
-    "protocol_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
-    "supported_features": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+    "type": { "const": "capabilities_response" },
+    "protocol_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "supported_features": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    }
   },
   "additionalProperties": false
 }

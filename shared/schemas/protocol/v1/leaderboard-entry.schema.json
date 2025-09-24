@@ -5,11 +5,19 @@
   "type": "object",
   "required": ["player_id", "name", "score", "rank", "at"],
   "properties": {
-    "player_id": {"type": "string"},
-    "name": {"type": "string", "minLength": 1, "maxLength": 24},
-    "score": {"type": "integer", "minimum": 0, "description": "Ties: earlier 'at' wins, then player_id lexicographically."},
-    "rank": {"type": "integer", "minimum": 1},
-    "at": {"type": "integer", "minimum": 0, "description": "Server tick at which score achieved (must equal Snapshot.server_tick)."}
+    "player_id": { "type": "string" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 24 },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Ties: earlier 'at' wins, then player_id lexicographically."
+    },
+    "rank": { "type": "integer", "minimum": 1 },
+    "at": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Server tick at which score achieved (must equal Snapshot.server_tick)."
+    }
   },
   "additionalProperties": false
 }

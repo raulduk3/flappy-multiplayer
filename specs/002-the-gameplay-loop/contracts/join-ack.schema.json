@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "join-ack.schema.json",
+  "title": "JoinAck",
+  "type": "object",
+  "required": [
+    "type",
+    "protocol_version",
+    "room_id",
+    "max_humans",
+    "bots_per_human",
+    "tick_hz"
+  ],
+  "properties": {
+    "type": { "const": "joinAck" },
+    "protocol_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "room_id": { "type": "string" },
+    "max_humans": { "type": "integer", "minimum": 1 },
+    "bots_per_human": { "type": "integer", "minimum": 0 },
+    "tick_hz": { "type": "integer", "minimum": 1 },
+    "pipe_weight": { "type": "number", "minimum": 0 },
+    "distance_weight": { "type": "number", "minimum": 0 },
+    "engraving_window_ms": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": false
+}

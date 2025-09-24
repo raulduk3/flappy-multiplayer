@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "message_types": {
+    "join": "join.schema.json",
+    "joinAck": "join-ack.schema.json",
+    "flap": "flap-input.schema.json",
+    "engrave": "engrave-request.schema.json",
+    "engraveAck": "engrave-ack.schema.json",
+    "runEnd": "run-end.schema.json",
+    "snapshot": "snapshot-v2.schema.json"
+  },
+  "notes": "Draft registry; snapshot refers to v2 unified schema. Legacy snapshot still supported separately until deprecation window.",
+  "version": 1
+}

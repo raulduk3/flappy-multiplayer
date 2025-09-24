@@ -1,6 +1,6 @@
 // T031: Hook to access protocol capabilities
-import {useEffect, useRef, useState} from 'react';
-import {ProtocolClient} from '../services/protocol';
+import { useEffect, useRef, useState } from "react";
+import { ProtocolClient } from "../services/protocol";
 
 export interface UseCapabilitiesOptions {
   url: string;
@@ -9,7 +9,7 @@ export interface UseCapabilitiesOptions {
 }
 
 export function useCapabilities(opts: UseCapabilitiesOptions) {
-  const {url, protocolVersion, autoConnect = true} = opts;
+  const { url, protocolVersion, autoConnect = true } = opts;
   const clientRef = useRef<ProtocolClient | null>(null);
   const [supported, setSupported] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export function useCapabilities(opts: UseCapabilitiesOptions) {
     const client = new ProtocolClient(protocolVersion, {
       onWelcome: (msg) => setWelcomeVersion(msg.protocol_version),
       onCapabilities: (msg) => setSupported(msg.supported_features),
-      onError: (msg) => setError(`${msg.code}:${msg.message}`)
+      onError: (msg) => setError(`${msg.code}:${msg.message}`),
     });
     clientRef.current = client;
     client.connect(url);
@@ -30,5 +30,5 @@ export function useCapabilities(opts: UseCapabilitiesOptions) {
     };
   }, [url, protocolVersion, autoConnect]);
 
-  return {supported, error, welcomeVersion};
+  return { supported, error, welcomeVersion };
 }

@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "run-end.schema.json",
+  "title": "RunEnd",
+  "type": "object",
+  "required": [
+    "type",
+    "protocol_version",
+    "room_id",
+    "run_id",
+    "score",
+    "distance",
+    "pipes_passed",
+    "elapsed_ms",
+    "cause"
+  ],
+  "properties": {
+    "type": { "const": "runEnd" },
+    "protocol_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "room_id": { "type": "string" },
+    "run_id": { "type": "string" },
+    "player_id": { "type": "string" },
+    "is_bot": { "type": "boolean" },
+    "score": { "type": "number", "minimum": 0 },
+    "distance": { "type": "number", "minimum": 0 },
+    "pipes_passed": { "type": "integer", "minimum": 0 },
+    "elapsed_ms": { "type": "integer", "minimum": 0 },
+    "cause": {
+      "type": "string",
+      "enum": [
+        "collision",
+        "boundary",
+        "cheat-removal",
+        "disconnect",
+        "timeout",
+        "server-shutdown"
+      ]
+    },
+    "engraving": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 24 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

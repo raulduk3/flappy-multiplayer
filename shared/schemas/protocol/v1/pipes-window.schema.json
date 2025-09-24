@@ -5,10 +5,14 @@
   "type": "object",
   "required": ["x", "gapY", "gapH", "id"],
   "properties": {
-    "x": {"type": "array", "items": {"type": "number"}, "maxItems": 50},
-    "gapY": {"type": "array", "items": {"type": "number"}, "maxItems": 50},
-    "gapH": {"type": "array", "items": {"type": "number", "minimum": 0}, "maxItems": 50},
-    "id": {"type": "array", "items": {"type": "string"}, "maxItems": 50}
+    "x": { "type": "array", "items": { "type": "number" }, "maxItems": 50 },
+    "gapY": { "type": "array", "items": { "type": "number" }, "maxItems": 50 },
+    "gapH": {
+      "type": "array",
+      "items": { "type": "number", "minimum": 0 },
+      "maxItems": 50
+    },
+    "id": { "type": "array", "items": { "type": "string" }, "maxItems": 50 }
   },
   "additionalProperties": false,
   "description": "All arrays must be same length and aligned by index (enforced application-side)."

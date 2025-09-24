@@ -5,8 +5,8 @@
   "type": "object",
   "required": ["type", "protocol_version"],
   "properties": {
-    "type": {"const": "capabilities_request"},
-    "protocol_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"}
+    "type": { "const": "capabilities_request" },
+    "protocol_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" }
   },
   "additionalProperties": false
 }

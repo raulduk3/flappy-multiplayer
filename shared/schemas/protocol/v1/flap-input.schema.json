@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "flap-input.schema.json",
+  "title": "FlapInput",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "type": { "const": "flap" },
+    "protocol_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "client_time": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": false
+}

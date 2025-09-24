@@ -5,12 +5,12 @@
   "type": "object",
   "required": ["id", "x", "y", "vx", "vy", "state"],
   "properties": {
-    "id": {"type": "string"},
-    "x": {"type": "number"},
-    "y": {"type": "number"},
-    "vx": {"type": "number"},
-    "vy": {"type": "number"},
-    "state": {"type": "string", "enum": ["idle", "alive", "dead"]}
+    "id": { "type": "string" },
+    "x": { "type": "number" },
+    "y": { "type": "number" },
+    "vx": { "type": "number" },
+    "vy": { "type": "number" },
+    "state": { "type": "string", "enum": ["idle", "alive", "dead"] }
   },
   "additionalProperties": false
 }

@@ -1,1 +1,1 @@
-module.exports = require('./capabilities.ts');
+module.exports = require("./capabilities.ts");

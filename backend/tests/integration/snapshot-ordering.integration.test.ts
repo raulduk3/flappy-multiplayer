@@ -1,51 +1,27 @@
-// T013: Snapshot ordering integration test
-import WebSocket from 'ws';
-import {createServer} from '../../src/server';
-import {createTickContext, startTickLoop} from '../../src/server/sim/tickLoop';
+// Updated T034: Snapshot ordering integration test (internal services)
+import { roomRegistry } from "../../src/server/services/roomRegistry.ts";
+import { handleJoin } from "../../src/server/handlers/join.ts";
+import { handleFlap } from "../../src/server/handlers/flap.ts";
+import {
+  tickOnce,
+  registerSnapshotBroadcaster,
+} from "../../src/server/sim/tickLoop.ts";
 
-const TEST_PORT = 19001;
-const SERVER_URL = `ws://localhost:${TEST_PORT}`;
-
-let server: any; let stopLoop: (()=>void)|null = null;
-
-beforeAll(() => {
-  try {
-    server = createServer(TEST_PORT);
-    const ctx = createTickContext();
-    stopLoop = startTickLoop(server.wss, ctx, 5);
-  } catch {}
-});
-
-afterAll(async () => {
-  if (stopLoop) stopLoop();
-  if (server && server.close) await server.close();
-});
-
-describe('Snapshot Ordering Integration (T013)', () => {
-  test('server_tick strictly increases', (done) => {
-    const ws = new WebSocket(SERVER_URL);
-    const ticks: number[] = [];
-    const timeout = setTimeout(() => {
-      ws.close();
-      if (ticks.length < 2) return done(new Error('Insufficient snapshots collected'));
-      for (let i=1;i<ticks.length;i++) {
-        if (!(ticks[i] > ticks[i-1])) return done(new Error('Non-increasing server_tick detected'));
-      }
-      done();
-    }, 400);
-
-    ws.on('open', () => {
-      ws.send(JSON.stringify({type:'hello', protocol_version:'1.0.0'}));
+describe("Snapshot Ordering Integration (T034)", () => {
+  test("seq strictly increases with no duplicates for active run", () => {
+    // Prepare player & start run
+    const sent: any[] = [];
+    const { player, room } = handleJoin("conn_order", (m) => sent.push(m));
+    handleFlap(player, room); // start run
+    const seqs: bigint[] = [];
+    registerSnapshotBroadcaster((roomId, snap) => {
+      if (roomId === room.room_id) seqs.push(BigInt(snap.seq));
     });
-    ws.on('message', (data) => {
-      const msg = JSON.parse(data.toString());
-      if (msg.type === 'snapshot') {
-        ticks.push(msg.server_tick);
-      }
-    });
-    ws.on('error', (err) => {
-      clearTimeout(timeout);
-      done(err);
-    });
+    for (let i = 0; i < 10; i++) tickOnce("1.0.0");
+    expect(seqs.length).toBeGreaterThanOrEqual(2);
+    for (let i = 1; i < seqs.length; i++)
+      expect(seqs[i] > seqs[i - 1]).toBe(true);
+    // No duplicates set size == length
+    expect(new Set(seqs).size).toBe(seqs.length);
   });
 });
