@@ -1,5 +1,7 @@
 # flappy-multiplayer
 
+- respecify #1 to scaffold complete game schema
+
 Real-time multiplayer Flappy-style game prototype featuring:
 
 - WebSocket protocol with versioned JSON Schemas (governed registry)
