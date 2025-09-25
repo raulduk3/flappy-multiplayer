@@ -1,6 +1,6 @@
 // T031: Hook to access protocol capabilities
 import { useEffect, useRef, useState } from "react";
-import { ProtocolClient } from "../services/protocol";
+import { ProtocolClient, type ConnectionState } from "../services/protocol";
 
 export interface UseCapabilitiesOptions {
   url: string;
@@ -14,6 +14,7 @@ export function useCapabilities(opts: UseCapabilitiesOptions) {
   const [supported, setSupported] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [welcomeVersion, setWelcomeVersion] = useState<string | null>(null);
+  const [state, setState] = useState<ConnectionState>("idle");
 
   useEffect(() => {
     if (!autoConnect) return;
@@ -21,14 +22,14 @@ export function useCapabilities(opts: UseCapabilitiesOptions) {
       onWelcome: (msg) => setWelcomeVersion(msg.protocol_version),
       onCapabilities: (msg) => setSupported(msg.supported_features),
       onError: (msg) => setError(`${msg.code}:${msg.message}`),
+      onStateChange: (s) => setState(s),
     });
     clientRef.current = client;
     client.connect(url);
     return () => {
-      // Close socket if available
-      // (ProtocolClient lacks explicit close; rely on browser GC or extend later.)
+      client.close?.();
     };
   }, [url, protocolVersion, autoConnect]);
 
-  return { supported, error, welcomeVersion };
+  return { supported, error, welcomeVersion, state, client: clientRef.current };
 }

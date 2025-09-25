@@ -3,6 +3,7 @@ import { ErrorObject } from "ajv";
 import * as formatsPluginNS from "ajv-formats";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
 // T020: Central Ajv validator loader & compile-once registry.
 
@@ -10,8 +11,9 @@ const ajv = new AjvNS.Ajv({ allErrors: true, strict: true });
 (formatsPluginNS as any).default(ajv);
 
 // Resolve schemas relative to repo root regardless of cwd (backend/ tests run with cwd=backend)
+const __dirnameESM = path.dirname(fileURLToPath(import.meta.url));
 const schemaDir = path.join(
-  __dirname,
+  __dirnameESM,
   "..",
   "..",
   "..",
@@ -69,7 +71,7 @@ const INLINE_SCHEMAS: Record<string, any> = {
   welcome: {
     $id: "welcome.schema.json",
     type: "object",
-    required: ["type", "protocol_version", "capabilities"],
+    required: ["type", "protocol_version"],
     additionalProperties: true,
     properties: {
       type: { const: "welcome" },
@@ -139,7 +141,7 @@ const TYPE_TO_VALIDATORS: Record<string, string[]> = {
   // incoming client → server
   hello: ["hello"],
   join: ["join-room"],
-  flap: ["flap-input"],
+  input: ["envelope"],
   engrave: ["engrave-request"],
   capabilities_request: ["capabilities-request"],
   capabilities_response: ["capabilities-response"],
@@ -152,6 +154,19 @@ const TYPE_TO_VALIDATORS: Record<string, string[]> = {
 };
 
 export function validateMessage(msg: unknown): ValidationResult {
+  const type = extractType(msg as any);
+  // Handshake messages are not part of the main envelope union; validate them directly
+  if (type === "hello" || type === "welcome") {
+    const v = schemaValidators[type];
+    if (!v) return { valid: false, errors: ["internal: missing handshake validator"] };
+    const ok = v(msg);
+    return ok
+      ? { valid: true }
+      : {
+          valid: false,
+          errors: (v.errors || []).map((e: ErrorObject) => `${e.instancePath} ${e.message}`.trim()),
+        };
+  }
   // First ensure object shape at envelope level (type presence etc.)
   const envelopeOk = validateEnvelope(msg);
   if (!envelopeOk) {
@@ -162,7 +177,7 @@ export function validateMessage(msg: unknown): ValidationResult {
       ),
     };
   }
-  const type = extractType(msg as any);
+  
   if (!type) return { valid: false, errors: ["missing type"] };
   const validators = TYPE_TO_VALIDATORS[type];
   if (!validators) {

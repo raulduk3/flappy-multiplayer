@@ -5,6 +5,7 @@
   "type": "module",
   "main": "dist/index.ts",
   "scripts": {
+    "dev": "tsx src/index.ts",
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
     "test": "jest --runInBand",
@@ -26,6 +27,7 @@
     "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "tsx": "^4.16.2"
   }
 }

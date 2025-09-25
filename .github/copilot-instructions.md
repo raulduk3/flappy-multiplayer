@@ -24,6 +24,9 @@ npm run lint
 TypeScript/Node.js (server), TypeScript/Next.js (client): Follow standard conventions
 
 ## Recent Changes
+- 003-the-client-gameplay: Implemented client gameplay shell and integration
+	- New modules: Game component, draw service (rectangles), InputQueue, prediction & reconciliation, Leaderboard and ConnectionIndicator overlays, protocol client extensions (snapshots, engrave, input)
+	- Tests: contract (input/engrave), integration (prediction, connection queue, scaling, runEnd→engrave, engrave UI), unit (logging, ordering, inputQueue, reconciliation, renderModel), perf (render loop sanity)
 
 - 001-a-real-time: Added TypeScript/Node.js (server), TypeScript/Next.js (client) + ws (or uWebSockets.js), Next.js, Tailwind, Jes
 
