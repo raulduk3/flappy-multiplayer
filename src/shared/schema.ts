@@ -1,13 +1,19 @@
-import Ajv, { ValidateFunction } from "ajv";
+import AjvImport, { type ValidateFunction } from "ajv";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 function loadSchema(relPath: string) {
-  const schemaPath = resolve(process.cwd(), "shared/schemas/protocol/v1", relPath);
+  const schemaPath = resolve(
+    process.cwd(),
+    "shared/schemas/protocol/v1",
+    relPath,
+  );
   const content = readFileSync(schemaPath, "utf-8");
   return JSON.parse(content);
 }
 
+// Some TS + NodeNext setups see Ajv default export as non-constructable. Cast to any to satisfy tsc.
+const Ajv: any = AjvImport as any;
 const ajv = new Ajv({ allErrors: true, strict: false });
 
 // Load and compile schemas

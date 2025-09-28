@@ -5,7 +5,10 @@ import { resolve } from "node:path";
 
 describe("test.ping.ack.success.schema", () => {
   const ajv = new Ajv({ strict: false });
-  const schemaPath = resolve(process.cwd(), "shared/schemas/protocol/v1/test.ping.ack.success.schema.json");
+  const schemaPath = resolve(
+    process.cwd(),
+    "shared/schemas/protocol/v1/test.ping.ack.success.schema.json",
+  );
   const schema = JSON.parse(readFileSync(schemaPath, "utf-8"));
   const validate = ajv.compile(schema);
 

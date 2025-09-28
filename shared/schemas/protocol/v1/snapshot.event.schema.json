@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/flappy/protocol/v1/snapshot.event.schema.json",
+  "title": "snapshot.event",
+  "type": "object",
+  "properties": {
+    "protocol_version": { "const": "1" },
+    "type": { "const": "snapshot.event" },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "room_id": { "type": "string" },
+        "tick": { "type": "integer", "minimum": 0 },
+        "seed": { "type": "string" },
+        "players": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "player_id": { "type": "string" },
+              "run_id": { "type": "string" },
+              "position": {
+                "type": "object",
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" }
+                },
+                "required": ["x", "y"],
+                "additionalProperties": false
+              },
+              "velocity": {
+                "type": "object",
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" }
+                },
+                "required": ["x", "y"],
+                "additionalProperties": false
+              },
+              "status": { "const": "alive" },
+              "distance": { "type": "number", "minimum": 0 },
+              "score": { "type": "integer", "minimum": 0 }
+            },
+            "required": [
+              "player_id",
+              "run_id",
+              "position",
+              "velocity",
+              "status",
+              "distance",
+              "score"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["room_id", "tick", "seed", "players"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["protocol_version", "type", "payload"],
+  "additionalProperties": false
+}

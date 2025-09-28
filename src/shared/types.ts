@@ -29,4 +29,44 @@ export interface LogEntry {
   protocol_version: string;
   type: string;
   message_id: string;
+  // Optional replay fields for richer logs (present when applicable)
+  room_id?: string;
+  run_id?: string;
+  seed?: string;
+  tick?: number;
+  final_distance?: number;
+  final_score?: number;
+}
+
+// Game-specific shared types
+export interface Vec2 {
+  x: number;
+  y: number;
+}
+
+export type PlayerStatus = "alive" | "ended";
+
+export interface ActivePlayerState {
+  player_id: string;
+  run_id: string;
+  position: Vec2;
+  velocity: Vec2;
+  status: "alive";
+  distance: number;
+  score: number;
+}
+
+export interface SnapshotPayload {
+  room_id: string;
+  tick: number;
+  seed: string;
+  players: ActivePlayerState[];
+}
+
+export interface RunEndPayload {
+  room_id: string;
+  run_id: string;
+  final_distance: number;
+  final_score: number;
+  reason: string;
 }

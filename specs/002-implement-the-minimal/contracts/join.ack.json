@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "join.ack.json",
+  "title": "join.ack",
+  "type": "object",
+  "properties": {
+    "protocol_version": { "const": 1 },
+    "type": { "const": "join.ack" },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "room_id": { "type": "string" },
+        "seed": { "type": "string" }
+      },
+      "required": ["room_id", "seed"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["protocol_version", "type", "payload"],
+  "additionalProperties": false
+}

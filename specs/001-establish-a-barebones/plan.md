@@ -4,6 +4,7 @@
 **Input**: Feature specification from `/specs/001-establish-a-barebones/spec.md`
 
 ## Execution Flow (/plan command scope)
+
 ```
 1. Load feature spec from Input path
    → Loaded
@@ -24,9 +25,11 @@
 ```
 
 ## Summary
+
 Establish a minimal, schema-validated client↔server communication path using a shared protocol envelope (protocol_version, type, payload). Server validates a `test.ping` message, responds with an acknowledgement, and both sides log structured JSON with correlation via server-generated message_id. No gameplay.
 
 ## Technical Context
+
 **Language/Version**: Node.js ≥20  
 **Primary Dependencies**: WebSocket transport, JSON Schema validation, UUID, structured logging  
 **Storage**: N/A  
@@ -39,11 +42,13 @@ Establish a minimal, schema-validated client↔server communication path using a
 **Scale/Scope**: Single connection, single round-trip only
 
 ## Constitution Check
+
 PASS — Design extends shared protocol concept, server authoritative, contract-first, deterministic replay with message_id, production security noted (TLS/WSS for prod). No client-side gameplay state.
 
 ## Project Structure
 
 ### Documentation (this feature)
+
 ```
 specs/001-establish-a-barebones/
 ├── plan.md
@@ -58,6 +63,7 @@ specs/001-establish-a-barebones/
 ```
 
 ### Source Code (repository root)
+
 ```
 src/
 ├── server/            # websocket server (to be added in implementation)
@@ -72,7 +78,9 @@ tests/
 **Structure Decision**: Single project; add `src/server`, `src/client`, and `src/shared`. During implementation, copy/extend schemas into `shared/schemas/protocol/v1`.
 
 ## Phase 0: Outline & Research
+
 Key unknowns resolved via Clarifications:
+
 - Canonical test message: type `test.ping`, payload `{ nonce: string }`.
 - Success ack payload: `{ status: "ok", nonce: string, message_id: string }`.
 - Error ack payload: `{ status: "error", reason: string, message_id: string }`.
@@ -82,6 +90,7 @@ Key unknowns resolved via Clarifications:
 Outputs: `research.md` documents decisions, rationale, and alternatives.
 
 ## Phase 1: Design & Contracts
+
 Entities captured in `data-model.md`: Protocol Envelope, Ack Success, Ack Error, Log Entry.
 
 Contracts produced under `contracts/` as JSON Schemas for envelope and message payloads. These will be relocated under `shared/schemas/protocol/v1` during implementation to comply with the Constitution.
@@ -91,27 +100,33 @@ Quickstart describes a minimal flow: start server → run fake client → observ
 Agent file updated with recent changes.
 
 ## Phase 2: Task Planning Approach (deferred to /tasks)
+
 - Generate tasks from contracts and data model.
 - TDD: write failing contract tests first (schema validation + integration ping/ack).
 - Implement server with validation and logging, then minimal client.
 
 ## Complexity Tracking
+
 None.
 
 ## Progress Tracking
+
 **Phase Status**:
+
 - [x] Phase 0: Research complete (/plan command)
 - [x] Phase 1: Design complete (/plan command)
-- [ ] Phase 2: Task planning complete (/plan command - describe approach only)
-- [ ] Phase 3: Tasks generated (/tasks command)
-- [ ] Phase 4: Implementation complete
-- [ ] Phase 5: Validation passed
+- [x] Phase 2: Task planning complete (/plan command - describe approach only)
+- [x] Phase 3: Tasks generated (/tasks command)
+- [x] Phase 4: Implementation complete
+- [x] Phase 5: Validation passed
 
 **Gate Status**:
+
 - [x] Initial Constitution Check: PASS
 - [x] Post-Design Constitution Check: PASS
 - [x] All NEEDS CLARIFICATION resolved
-- [ ] Complexity deviations documented
+- [x] Complexity deviations documented
 
 ---
+
 Based on Constitution v1.0.0 - See `.specify/memory/constitution.md`

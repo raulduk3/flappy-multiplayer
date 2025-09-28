@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import WebSocket from "ws";
-import { startServer } from "../../src/server/server";
+import { startServer } from "../../src/server/server.js";
 
 describe("integration: unsupported protocol_version → error ack", () => {
   it("responds with ack.error for protocol_version 0.9", async () => {
@@ -9,7 +9,10 @@ describe("integration: unsupported protocol_version → error ack", () => {
 
     try {
       const ack: any = await new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error("timeout waiting for ack")), 3000);
+        const timer = setTimeout(
+          () => reject(new Error("timeout waiting for ack")),
+          3000,
+        );
         const ws = new WebSocket(url);
         ws.on("open", () => {
           const envelope = {

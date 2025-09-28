@@ -15,7 +15,7 @@ export function createLogCollector() {
     },
     getEntries() {
       return entries.slice();
-    }
+    },
   };
 }
 
@@ -25,13 +25,29 @@ export function buildLogEntry(params: {
   protocol_version: string;
   type: string;
   message_id: string;
+  // Optional replay fields
+  room_id?: string;
+  run_id?: string;
+  seed?: string;
+  tick?: number;
+  final_distance?: number;
+  final_score?: number;
 }): LogEntry {
-  return {
+  const base: LogEntry = {
     timestamp: new Date().toISOString(),
     session_id: params.session_id,
     direction: params.direction,
     protocol_version: params.protocol_version,
     type: params.type,
-    message_id: params.message_id
+    message_id: params.message_id,
   };
+  const extra: Partial<LogEntry> = {};
+  if (params.room_id !== undefined) extra.room_id = params.room_id;
+  if (params.run_id !== undefined) extra.run_id = params.run_id;
+  if (params.seed !== undefined) extra.seed = params.seed;
+  if (params.tick !== undefined) extra.tick = params.tick;
+  if (params.final_distance !== undefined)
+    extra.final_distance = params.final_distance;
+  if (params.final_score !== undefined) extra.final_score = params.final_score;
+  return { ...base, ...extra };
 }

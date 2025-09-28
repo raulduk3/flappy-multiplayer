@@ -4,8 +4,9 @@ import { v4 as uuidv4 } from "uuid";
 import { createLogger, buildLogEntry } from "../shared/logging.js";
 import type { LogEntry } from "../shared/types.js";
 import { validateEnvelope, validateTestPing } from "../shared/schema.js";
+import { RoomManager } from "./roomManager.js";
 
-const SUPPORTED_PROTOCOL_VERSION = "1.0";
+const SUPPORTED_PROTOCOL_VERSION = "1";
 
 export interface StartOptions {
   port?: number; // 0 for ephemeral
@@ -19,81 +20,79 @@ export interface RunningServer {
 }
 
 function sendJson(ws: WebSocket, obj: unknown) {
-  ws.send(JSON.stringify(obj));
+  try {
+    ws.send(JSON.stringify(obj));
+  } catch {}
 }
 
-export async function startServer(opts: StartOptions = {}): Promise<RunningServer> {
+export async function startServer(
+  opts: StartOptions = {},
+): Promise<RunningServer> {
   const logger = createLogger();
   const httpServer = createHttpServer();
   const wss = new WebSocketServer({ server: httpServer });
   const listenPort = opts.port ?? 0; // 0 = ephemeral
+  const roomManager = new RoomManager({
+    protocolVersion: SUPPORTED_PROTOCOL_VERSION,
+    onLog: opts.onLog,
+  });
 
-  wss.on("connection", (ws) => {
+  wss.on("connection", (ws: WebSocket) => {
     const sessionId = uuidv4();
+    roomManager.addSession(sessionId, ws);
 
     ws.on("message", (data) => {
       const raw = data.toString();
       let envelope: any;
-      let messageId = uuidv4();
+      const messageId = uuidv4();
       try {
         envelope = JSON.parse(raw);
       } catch (err) {
-        const reason = "invalid JSON";
-        const type = "unknown";
         const protocol_version = "unknown";
-        {
-          const entry = buildLogEntry({
+        const type = "unknown";
+        const entry = buildLogEntry({
           session_id: sessionId,
           direction: "inbound",
           protocol_version,
           type,
           message_id: messageId,
-          });
-          opts.onLog?.(entry);
-          logger.info(entry);
-        }
-        sendJson(ws, { status: "error", reason, message_id: messageId });
-        {
-          const entry = buildLogEntry({
+        });
+        opts.onLog?.(entry);
+        logger.info(entry);
+        sendJson(ws, { status: "error", reason: "invalid JSON", message_id: messageId });
+        const out = buildLogEntry({
           session_id: sessionId,
           direction: "outbound",
           protocol_version,
           type: "ack.error",
           message_id: messageId,
-          });
-          opts.onLog?.(entry);
-          logger.info(entry);
-        }
+        });
+        opts.onLog?.(out);
+        logger.info(out);
         return;
       }
 
-      // Validate envelope
       const envRes = validateEnvelope(envelope);
       if (!envRes.ok) {
-        const reason = "invalid envelope";
-        {
-          const entry = buildLogEntry({
+        const entry = buildLogEntry({
           session_id: sessionId,
           direction: "inbound",
           protocol_version: envelope?.protocol_version ?? "unknown",
           type: envelope?.type ?? "unknown",
           message_id: messageId,
-          });
-          opts.onLog?.(entry);
-          logger.info(entry);
-        }
-        sendJson(ws, { status: "error", reason, message_id: messageId });
-        {
-          const entry = buildLogEntry({
+        });
+        opts.onLog?.(entry);
+        logger.info(entry);
+        sendJson(ws, { status: "error", reason: "invalid envelope", message_id: messageId });
+        const out = buildLogEntry({
           session_id: sessionId,
           direction: "outbound",
           protocol_version: envelope?.protocol_version ?? "unknown",
           type: "ack.error",
           message_id: messageId,
-          });
-          opts.onLog?.(entry);
-          logger.info(entry);
-        }
+        });
+        opts.onLog?.(out);
+        logger.info(out);
         return;
       }
 
@@ -103,81 +102,83 @@ export async function startServer(opts: StartOptions = {}): Promise<RunningServe
         payload: any;
       };
 
-      {
-        const entry = buildLogEntry({
+      const inbound = buildLogEntry({
         session_id: sessionId,
         direction: "inbound",
         protocol_version,
         type,
         message_id: messageId,
-        });
-        opts.onLog?.(entry);
-        logger.info(entry);
-      }
+      });
+      opts.onLog?.(inbound);
+      logger.info(inbound);
 
-      // Protocol version check
       if (protocol_version !== SUPPORTED_PROTOCOL_VERSION) {
-        const reason = "unsupported protocol_version";
-        sendJson(ws, { status: "error", reason, message_id: messageId });
-        {
-          const entry = buildLogEntry({
+        sendJson(ws, { status: "error", reason: "unsupported protocol_version", message_id: messageId });
+        const out = buildLogEntry({
           session_id: sessionId,
           direction: "outbound",
           protocol_version,
           type: "ack.error",
           message_id: messageId,
-          });
-          opts.onLog?.(entry);
-          logger.info(entry);
-        }
+        });
+        opts.onLog?.(out);
+        logger.info(out);
         return;
       }
 
       if (type === "test.ping") {
         const val = validateTestPing(payload);
         if (!val.ok) {
-          const reason = "invalid payload";
-          sendJson(ws, { status: "error", reason, message_id: messageId });
-          logger.info(buildLogEntry({
+          sendJson(ws, { status: "error", reason: "invalid payload", message_id: messageId });
+          const out = buildLogEntry({
             session_id: sessionId,
             direction: "outbound",
             protocol_version,
             type: "ack.error",
             message_id: messageId,
-          }));
+          });
+          opts.onLog?.(out);
+          logger.info(out);
           return;
         }
-        // Success
-        const ack = { status: "ok" as const, nonce: payload.nonce as string, message_id: messageId };
-        sendJson(ws, ack);
-        {
-          const entry = buildLogEntry({
+        sendJson(ws, { status: "ok", nonce: payload.nonce as string, message_id: messageId });
+        const out = buildLogEntry({
           session_id: sessionId,
           direction: "outbound",
           protocol_version,
           type: "ack.success",
           message_id: messageId,
-          });
-          opts.onLog?.(entry);
-          logger.info(entry);
-        }
+        });
+        opts.onLog?.(out);
+        logger.info(out);
+        return;
+      }
+
+      if (type === "join.request") {
+        roomManager.handleJoin(sessionId, messageId);
+        return;
+      }
+
+      if (type === "input.flap.request") {
+        roomManager.handleFlap(sessionId, messageId);
         return;
       }
 
       // Unknown type
-      {
-        const reason = "unsupported type";
-        sendJson(ws, { status: "error", reason, message_id: messageId });
-        const entry = buildLogEntry({
-          session_id: sessionId,
-          direction: "outbound",
-          protocol_version,
-          type: "ack.error",
-          message_id: messageId,
-        });
-        opts.onLog?.(entry);
-        logger.info(entry);
-      }
+      sendJson(ws, { status: "error", reason: "unsupported type", message_id: messageId });
+      const out = buildLogEntry({
+        session_id: sessionId,
+        direction: "outbound",
+        protocol_version,
+        type: "ack.error",
+        message_id: messageId,
+      });
+      opts.onLog?.(out);
+      logger.info(out);
+    });
+
+    ws.on("close", () => {
+      roomManager.removeSession(sessionId);
     });
   });
 
@@ -192,6 +193,10 @@ export async function startServer(opts: StartOptions = {}): Promise<RunningServe
     port,
     wss,
     close: async () => {
+      wss.clients.forEach((client) => {
+        try { client.close(); } catch {}
+      });
+      roomManager.stopAll();
       await new Promise<void>((resolve) => wss.close(() => resolve()));
       await new Promise<void>((resolve) => httpServer.close(() => resolve()));
     },

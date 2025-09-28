@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "join.request.json",
+  "title": "join.request",
+  "type": "object",
+  "properties": {
+    "protocol_version": { "const": 1 },
+    "type": { "const": "join.request" },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "client_info": { "type": "object", "additionalProperties": true }
+      },
+      "required": []
+    }
+  },
+  "required": ["protocol_version", "type", "payload"],
+  "additionalProperties": false
+}

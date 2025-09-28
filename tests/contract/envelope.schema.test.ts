@@ -5,7 +5,10 @@ import { resolve } from "node:path";
 
 describe("envelope.schema", () => {
   const ajv = new Ajv({ strict: false });
-  const schemaPath = resolve(process.cwd(), "shared/schemas/protocol/v1/envelope.schema.json");
+  const schemaPath = resolve(
+    process.cwd(),
+    "shared/schemas/protocol/v1/envelope.schema.json",
+  );
   const schema = JSON.parse(readFileSync(schemaPath, "utf-8"));
   const validate = ajv.compile(schema);
 
@@ -13,7 +16,7 @@ describe("envelope.schema", () => {
     const good = {
       protocol_version: "1.0",
       type: "test.ping",
-      payload: { nonce: "abc" }
+      payload: { nonce: "abc" },
     };
     expect(validate(good)).toBe(true);
   });

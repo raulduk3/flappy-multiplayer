@@ -6,6 +6,7 @@
 **Input**: User description: "Establish a barebones communication system for the multiplayer game. The goal of this step is only to confirm that a client and server can connect and exchange structured messages. Both sides use a shared protocol document in shared/schemas/protocol/v1, which defines a minimal envelope format {protocol_version, type, payload}. No gameplay is implemented yet. Acceptance: server can accept a WebSocket connection, validate a simple test message against the shared doc, echo back an acknowledgement, and log the exchange in structured JSON. Fake client can connect, send a message, and receive the acknowledgement."
 
 ## Execution Flow (main)
+
 ```
 1. Parse user description from Input
    → If empty: ERROR "No feature description provided"
@@ -25,9 +26,10 @@
 8. Return: SUCCESS (spec ready for planning)
 ```
 
-
 ## Clarifications
+
 ### Session 2025-09-25
+
 - Q: What is the canonical test message type and minimal payload for this step? → A: type "test.ping"; payload `{ nonce: string }`; acknowledgement echoes the same `nonce` in its payload.
 - Q: What is the error acknowledgement payload format for validation failures? → A: `{ status: "error", reason: string, message_id: string }`.
 - Q: What’s the acknowledgement success payload for a valid test.ping? → A: `{ status: "ok", nonce: string, message_id: string }`.
@@ -37,16 +39,19 @@
 ---
 
 ## ⚡ Quick Guidelines
+
 - ✅ Focus on WHAT users need and WHY
 - ❌ Avoid HOW to implement (no tech stack, APIs, code structure)
 - 👥 Written for business stakeholders, not developers
 
 ### Section Requirements
+
 - **Mandatory sections**: Must be completed for every feature
 - **Optional sections**: Include only when relevant to the feature
 - When a section doesn't apply, remove it entirely (don't leave as "N/A")
 
 Constitution alignment (v1.0.0):
+
 - Protocol updates MUST extend `shared/schemas/protocol/v1` rather than fork it
 - Server remains authoritative; client changes are rendering/UI only
 - New interactions MUST state replay logging fields (ids, timestamps, seeds)
@@ -54,13 +59,15 @@ Constitution alignment (v1.0.0):
 - Security notes for production paths (TLS/WSS, input validation)
 
 ### For AI Generation
+
 When creating this spec from a user prompt:
+
 1. **Mark all ambiguities**: Use [NEEDS CLARIFICATION: specific question] for any assumption you'd need to make
 2. **Don't guess**: If the prompt doesn't specify something (e.g., "login system" without auth method), mark it
 3. **Think like a tester**: Every vague requirement should fail the "testable and unambiguous" checklist item
 4. **Common underspecified areas**:
    - User types and permissions
-   - Data retention/deletion policies  
+   - Data retention/deletion policies
    - Performance targets and scale
    - Error handling behaviors
    - Integration requirements
@@ -68,26 +75,30 @@ When creating this spec from a user prompt:
 
 ---
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### Primary User Story
+
 As a developer/tester, I want to verify that a minimal client can connect to the game server and exchange a single valid protocol message so that we can confirm the end-to-end communication path before building gameplay features.
 
 ### Acceptance Scenarios
+
 1. Given the server is running, When a client connects and sends a test message that conforms to the shared protocol v1 envelope, Then the server validates the message, replies with an acknowledgement message, and both sides record the exchange in structured JSON logs.
 2. Given a connected client, When it sends a message with an invalid envelope (e.g., missing required field or invalid type), Then the server rejects it by sending an error acknowledgement describing the validation failure and logs the error without terminating the process.
 3. Given a connected client, When it sends a message declaring an unsupported protocol_version, Then the server responds with a version error acknowledgement and logs the event for diagnosis.
 
 ### Edge Cases
+
 - Client attempts to connect while the server is unavailable → client receives a clear connection failure and can retry without side effects.
 - Message payload is empty or contains unexpected fields → server treats it as schema validation failure and responds with error acknowledgement.
 - Protocol version mismatch between client and server → server communicates supported version in acknowledgement payload and does not process the message.
 - Malformed message (e.g., not parseable) → server logs parsing error and responds with a generic invalid-message acknowledgement.
 - Determinism/replay: each logged event includes a timestamp, a stable connection/session identifier, direction (inbound/outbound), and the message envelope fields required for deterministic analysis.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
+
 - **FR-001**: The server MUST accept at least one real-time client connection and maintain it long enough to exchange a single message and acknowledgement.
 - **FR-002**: Both client and server MUST use a shared protocol document located at `shared/schemas/protocol/v1` defining a minimal envelope with fields: `protocol_version`, `type`, and `payload`.
 - **FR-003**: Upon receiving any message, the server MUST validate the envelope against the shared protocol schema before acting on it.
@@ -102,16 +113,19 @@ As a developer/tester, I want to verify that a minimal client can connect to the
    Non-production environments MAY use plain WS during development; production MUST use WSS/TLS.
 
 Constitutional requirements (add where applicable):
+
 - **FR-00X**: Messages MUST conform to `shared/schemas/protocol/v1` and be additive (extensions must not break existing consumers).
- - **FR-00Y**: All interactions MUST be logged for deterministic replay, including at minimum: `timestamp`, `session_id`, `message_id`, `protocol_version`, `type`, and `direction` to correlate requests and acknowledgements deterministically.
+- **FR-00Y**: All interactions MUST be logged for deterministic replay, including at minimum: `timestamp`, `session_id`, `message_id`, `protocol_version`, `type`, and `direction` to correlate requests and acknowledgements deterministically.
 - **FR-00Z**: Client MUST reconcile to server-authoritative state (this feature only verifies connectivity; no state is presented or reconciled yet).
 
-*Example of marking unclear requirements:*
+_Example of marking unclear requirements:_
+
 - **FR-011**: The canonical test message MUST be `type: "test.ping"` with payload `{ nonce: string }`. The server's acknowledgement payload MUST include the same `nonce` to enable client-side correlation.
 - **FR-012**: Error acknowledgement payload MUST be `{ status: "error", reason: string, message_id: string }`. The `reason` SHOULD be concise and user-readable for diagnostics.
 - **FR-013**: Connection lifecycle: After sending the acknowledgement, the server keeps the connection open; the client is responsible for closing the connection once the acknowledgement is received.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
+
 - **Protocol Envelope**: A minimal message wrapper containing `protocol_version`, `type`, and `payload`. The payload is interpreted according to the `type` and the shared schema.
 - **Acknowledgement Message**: A message sent by the server after processing, indicating success or error in the payload, while adhering to the same envelope structure.
 - **Connection/Session**: A logical session representing a client's live connection, used to group logs and correlate messages and acknowledgements.
@@ -120,6 +134,7 @@ Constitutional requirements (add where applicable):
 ---
 
 ## Assumptions & Dependencies (optional)
+
 - A minimal “fake” client is available or will be implemented as part of this feature to exercise the connection and message flow.
 - The shared protocol document at `shared/schemas/protocol/v1` exists or will be created with the minimal envelope definition described.
 - No authentication, matchmaking, or gameplay semantics are required in this step.
@@ -129,37 +144,41 @@ Constitutional requirements (add where applicable):
 ---
 
 ## Review & Acceptance Checklist
-*GATE: Automated checks run during main() execution*
+
+_GATE: Automated checks run during main() execution_
 
 ### Content Quality
-- [ ] No implementation details (languages, frameworks, APIs)
-- [ ] Focused on user value and business needs
-- [ ] Written for non-technical stakeholders
-- [ ] All mandatory sections completed
- - [ ] Protocol updates extend shared schema (no forks)
- - [ ] Server-authoritative model preserved
- - [ ] Replay logging fields identified
- - [ ] Accessibility acceptance criteria present
- - [ ] Production security considerations (TLS/WSS, validation)
+
+- [x] No implementation details (languages, frameworks, APIs)
+- [x] Focused on user value and business needs
+- [x] Written for non-technical stakeholders
+- [x] All mandatory sections completed
+- [x] Protocol updates extend shared schema (no forks)
+- [x] Server-authoritative model preserved
+- [x] Replay logging fields identified
+- [x] Accessibility acceptance criteria present
+- [x] Production security considerations (TLS/WSS, validation)
 
 ### Requirement Completeness
-- [ ] No [NEEDS CLARIFICATION] markers remain
-- [ ] Requirements are testable and unambiguous  
-- [ ] Success criteria are measurable
-- [ ] Scope is clearly bounded
-- [ ] Dependencies and assumptions identified
+
+- [x] No [NEEDS CLARIFICATION] markers remain
+- [x] Requirements are testable and unambiguous
+- [x] Success criteria are measurable
+- [x] Scope is clearly bounded
+- [x] Dependencies and assumptions identified
 
 ---
 
 ## Execution Status
-*Updated by main() during processing*
 
-- [ ] User description parsed
-- [ ] Key concepts extracted
-- [ ] Ambiguities marked
-- [ ] User scenarios defined
-- [ ] Requirements generated
-- [ ] Entities identified
-- [ ] Review checklist passed
+_Updated by main() during processing_
+
+- [x] User description parsed
+- [x] Key concepts extracted
+- [x] Ambiguities marked
+- [x] User scenarios defined
+- [x] Requirements generated
+- [x] Entities identified
+- [x] Review checklist passed
 
 ---

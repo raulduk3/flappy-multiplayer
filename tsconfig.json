@@ -8,10 +8,12 @@
     "strict": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM"],
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": ["node", "vitest"]
+    "types": ["node", "vitest", "react", "react-dom"]
   },
-  "include": ["src", "tests"],
+  "include": ["src/server", "src/shared"],
   "exclude": ["node_modules", "dist"]
 }
