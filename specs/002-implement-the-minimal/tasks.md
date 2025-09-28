@@ -60,15 +60,17 @@ This tasks list follows TDD and the repository Constitution. Execute in order un
 
 ## Logging, Observability, Security
 
-- T070: Ensure structured logs include ids (room_id, run_id, session_id), seed, tick, inputs, outcomes; align with replay requirements. Files: `src/server/server.ts`, `src/server/room*.ts`.
-- T071: Validate all inbound messages with ajv; enforce 5 flaps/sec per player (ignore excess). Files: `src/server/server.ts`.
-- T072: Document WSS for prod and WS for dev in quickstart; ensure no secrets in logs. Files: `specs/002-implement-the-minimal/quickstart.md`.
+ - [x] T070: Ensure structured logs include ids (room_id, run_id, session_id), seed, tick, inputs, outcomes; align with replay requirements. Files: `src/server/server.ts`, `src/server/room*.ts`.
+ - [x] T071: Validate all inbound messages with ajv; enforce 5 flaps/sec per player (ignore excess). Files: `src/server/server.ts`.
+ - [x] T072: Document WSS for prod and WS for dev in quickstart; ensure no secrets in logs. Files: `specs/002-implement-the-minimal/quickstart.md`.
+ - [x] T073: Polish logs to clear and only display relevant material.
+Files: `src/server/server/ts`.
 
 ## Docs & Polish [P]
 
-- T080 [P]: Update `specs/002-implement-the-minimal/quickstart.md` with concrete run steps and troubleshooting after implementation.
-- T081 [P]: Add README section for the client Game page and controls.
-- T082 [P]: Add comments and inline docs in shared modules for constants and deterministic behavior.
+ - [x] T080 [P]: Update `specs/002-implement-the-minimal/quickstart.md` with concrete run steps and troubleshooting after implementation.
+ - [x] T081 [P]: Add README section for the client Game page and controls. (Created root README with run steps and controls)
+ - [x] T082 [P]: Add comments and inline docs in shared modules for constants and deterministic behavior. (Annotated constants/track/physics)
 
 ## Parallelization Guidance
 
@@ -85,4 +87,4 @@ This tasks list follows TDD and the repository Constitution. Execute in order un
 
 ## Additional Unit/Integration Tests
 
-- T024 [P]: Score increments correctly when passing pipes; final_score matches count on runEnd. File: `tests/unit/score.test.ts`.
+- [x] T024 [P]: Score increments correctly when passing pipes; final_score matches count on runEnd. File: `tests/unit/score.test.ts`.

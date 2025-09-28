@@ -9,9 +9,10 @@ interface Handlers {
   onRunEnd?: (payload: { room_id: string; run_id: string; final_distance: number; final_score: number; reason: string }) => void;
 }
 
+// Minimal WebSocket client that follows the protocol envelope.
 export function connect(h: Handlers) {
-  // In dev, assume server on ws://localhost:3001
-  const url = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3001";
+  // In dev, server runs on ws://localhost:3000 per quickstart; override via NEXT_PUBLIC_WS_URL
+  const url = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3000";
   const ws = new WebSocket(url);
 
   const send = (obj: any) => ws.readyState === ws.OPEN && ws.send(JSON.stringify(obj));

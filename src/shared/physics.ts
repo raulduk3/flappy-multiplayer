@@ -10,6 +10,8 @@ export interface InputFlags {
   flap?: boolean;
 }
 
+// Integrate physics for one tick.
+// Deterministic given the same initial state and inputs across client/server.
 export function step(
   state: PhysicsState,
   dt: number,
@@ -23,7 +25,7 @@ export function step(
   return { x: state.x, y: state.y + vy * dt, vx: state.vx, vy };
 }
 
-// Placeholder collision functions to be implemented later
+// Collision helpers. These are intentionally simple AABB checks consistent with tests.
 export function collidesWithBounds(
   state: { x: number; y: number },
   worldHeight: number,

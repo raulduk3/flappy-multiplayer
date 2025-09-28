@@ -10,12 +10,16 @@ This doc explains how to run the server and the barebones client for this featur
 ## Run the server
 
 - Development: npm run dev (uses tsx, picks PORT=3000 unless set)
-- Alternate port: PORT=0 for ephemeral
+- Alternate port: set PORT (e.g., PORT=0 for ephemeral)
+
+Notes:
+- In development, the client connects via ws://localhost:3000.
+- In production, terminate TLS at a proxy and use wss:// to the public endpoint.
 
 ## Run the client (barebones)
 
-- Next.js app in `src/client` (to be scaffolded in implementation)
-- Development: npm run client:dev
+- Next.js app is in `src/client`.
+- Development: npm run client:dev (opens on http://localhost:3001 by default)
 
 ## Test matrix
 
@@ -30,3 +34,9 @@ This doc explains how to run the server and the barebones client for this featur
 - Rooms: 32 players max; spillover creates a new room
 - Inputs: 5 flaps/sec limit; excess ignored
 - Runs start on first flap; new run_id after runEnd
+
+## Troubleshooting
+
+- If tests fail with "Unknown command: tests", use the provided script: npm run test
+- If you don’t see snapshots, ensure the server port matches the client WebSocket URL.
+- For flaky timing tests on slower machines, close other heavy apps; snapshot cadence has tolerance but needs roughly 45 Hz.
