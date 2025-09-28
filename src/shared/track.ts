@@ -28,7 +28,18 @@ function seedStringToInt(s: string): number {
   return h >>> 0;
 }
 
-// Deterministic track generator: returns visible pipes near the player's x based on tick
+// Deterministic track generator.
+//
+// Contract:
+// - Input: (seed, tick, opts?) where tick progresses at the server’s physics Hz.
+// - Output: Stable sequence of pipe columns with x positions in world pixels and
+//   gap geometry derived from a seeded PRNG.
+// - Determinism: For a given seed and generation index, the RNG call order and
+//   difficulty progression must be identical on client and server. We derive a
+//   generation index `g` from world index `i` so that changing initial offsets
+//   (runway space before first pipe) does not alter RNG progression.
+// - Difficulty: gap height tightens by TrackConfig.gapTightenPer10s every 10s
+//   of pipe cadence time, clamped at TrackConfig.gapMinRatio.
 export function getPipesAtTick(
   seed: string,
   tick: number,
@@ -65,7 +76,9 @@ export function getPipesAtTick(
   // Guarantee we produce some pipes even if the base index is negative (pre-runway)
   const end = Math.max(start + after, pipeIndexBase + after); // exclusive upper bound
   for (let i = start; i < end; i++) {
-    const g = i; // generation index starts at 0 for the first real pipe
+    // Use generation index equal to world index so first pipe corresponds to g≈0.
+    // As long as consumers compute `i` consistently from x positions, RNG alignment holds.
+    const g = i; // generation index starts at ~0 for the first real pipe
     const rng = xorshift32(baseSeed ^ (g * 0x9e3779b1));
 
     // Gap tightening over time is based on generation index
@@ -81,7 +94,7 @@ export function getPipesAtTick(
     const maxCenter = H - gapHeight / 2 - 10;
     const gapCenterY = minCenter + (maxCenter - minCenter) * rng();
 
-  const x = (i + 1) * spacingPx + TrackConfig.initialOffsetPx; // ahead of origin with configurable offset
+    const x = (i + 1) * spacingPx + TrackConfig.initialOffsetPx; // ahead of origin with configurable offset
 
     results.push({ x, gapCenterY, gapHeight, width: pipeWidth });
   }
