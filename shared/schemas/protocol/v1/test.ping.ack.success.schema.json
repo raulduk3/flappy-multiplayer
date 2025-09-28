@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/flappy/protocol/v1/test.ping.ack.success.schema.json",
+  "title": "test.ping Ack Success Payload",
+  "type": "object",
+  "required": ["status", "nonce", "message_id"],
+  "properties": {
+    "status": { "type": "string", "const": "ok" },
+    "nonce": { "type": "string", "minLength": 1 },
+    "message_id": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

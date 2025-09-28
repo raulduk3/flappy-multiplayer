@@ -37,6 +37,13 @@
 - **Optional sections**: Include only when relevant to the feature
 - When a section doesn't apply, remove it entirely (don't leave as "N/A")
 
+Constitution alignment (v1.0.0):
+- Protocol updates MUST extend `shared/schemas/protocol/v1` rather than fork it
+- Server remains authoritative; client changes are rendering/UI only
+- New interactions MUST state replay logging fields (ids, timestamps, seeds)
+- Accessibility acceptance criteria (keyboard, labels, contrast) included
+- Security notes for production paths (TLS/WSS, input validation)
+
 ### For AI Generation
 When creating this spec from a user prompt:
 1. **Mark all ambiguities**: Use [NEEDS CLARIFICATION: specific question] for any assumption you'd need to make
@@ -64,6 +71,7 @@ When creating this spec from a user prompt:
 ### Edge Cases
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
+- How is replay determinism preserved for this scenario?
 
 ## Requirements *(mandatory)*
 
@@ -73,6 +81,11 @@ When creating this spec from a user prompt:
 - **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
+
+Constitutional requirements (add where applicable):
+- **FR-00X**: Messages MUST conform to `shared/schemas/protocol/v1` and be additive
+- **FR-00Y**: All interactions MUST be logged for deterministic replay
+- **FR-00Z**: Client MUST reconcile to server-authoritative state
 
 *Example of marking unclear requirements:*
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
@@ -92,6 +105,11 @@ When creating this spec from a user prompt:
 - [ ] Focused on user value and business needs
 - [ ] Written for non-technical stakeholders
 - [ ] All mandatory sections completed
+ - [ ] Protocol updates extend shared schema (no forks)
+ - [ ] Server-authoritative model preserved
+ - [ ] Replay logging fields identified
+ - [ ] Accessibility acceptance criteria present
+ - [ ] Production security considerations (TLS/WSS, validation)
 
 ### Requirement Completeness
 - [ ] No [NEEDS CLARIFICATION] markers remain

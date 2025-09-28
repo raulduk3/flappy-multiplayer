@@ -47,7 +47,13 @@
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Verify all of the following based on `/memory/constitution.md` (v1.0.0):
+- Protocol changes extend `shared/schemas/protocol/v1` (no forks/duplication)
+- Server remains authoritative; client is thin (render + input + reconciliation)
+- Tests-first: contract tests exist and initially fail before implementation
+- Deterministic replay: interactions will be logged sufficiently for replay
+- Accessibility: keyboard-only, screen reader labels, color contrast addressed
+- Security: production paths use TLS (HTTPS/WSS); inputs validated; rate limits
 
 ## Project Structure
 
@@ -216,4 +222,4 @@ directories captured above]
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Based on Constitution v1.0.0 - See `.specify/memory/constitution.md`*

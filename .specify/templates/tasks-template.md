@@ -46,13 +46,13 @@
 - [ ] T001 Create project structure per implementation plan
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
+ - [ ] T004 Define/extend protocol messages in shared/schemas/protocol/v1
+ - [ ] T005 [P] Generate protocol fixtures for tests and replay
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [ ] T004 [P] Contract test POST /api/users in tests/contract/test_users_post.py
-- [ ] T005 [P] Contract test GET /api/users/{id} in tests/contract/test_users_get.py
-- [ ] T006 [P] Integration test user registration in tests/integration/test_registration.py
-- [ ] T007 [P] Integration test auth flow in tests/integration/test_auth.py
+- [ ] T006 [P] Contract tests validate messages against shared/schemas/protocol/v1
+- [ ] T007 [P] Integration test: end-to-end join → play → finish with replay
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 - [ ] T008 [P] User model in src/models/user.py
@@ -62,12 +62,16 @@
 - [ ] T012 GET /api/users/{id} endpoint
 - [ ] T013 Input validation
 - [ ] T014 Error handling and logging
+ - [ ] T015 Wire deterministic replay logger (inputs + outputs with IDs/timestamps)
+ - [ ] T016 Implement server-authoritative reconciliation on client
 
 ## Phase 3.4: Integration
 - [ ] T015 Connect UserService to DB
 - [ ] T016 Auth middleware
 - [ ] T017 Request/response logging
 - [ ] T018 CORS and security headers
+ - [ ] T019 Configure TLS for production (HTTPS/WSS) and cert validation
+ - [ ] T020 Apply rate limiting and input sanitization at boundaries
 
 ## Phase 3.5: Polish
 - [ ] T019 [P] Unit tests for validation in tests/unit/test_validation.py
@@ -75,6 +79,8 @@
 - [ ] T021 [P] Update docs/api.md
 - [ ] T022 Remove duplication
 - [ ] T023 Run manual-testing.md
+ - [ ] T024 Accessibility checks: keyboard-only, labels, color contrast
+ - [ ] T025 Replay tooling: load logs and reconstruct server state deterministically
 
 ## Dependencies
 - Tests (T004-T007) before implementation (T008-T014)
@@ -125,3 +131,7 @@ Task: "Integration test auth in tests/integration/test_auth.py"
 - [ ] Parallel tasks truly independent
 - [ ] Each task specifies exact file path
 - [ ] No task modifies same file as another [P] task
+ - [ ] Protocol tasks reference shared/schemas/protocol/v1
+ - [ ] Replay logging and tooling tasks included
+ - [ ] TLS/security tasks included for production paths
+ - [ ] Accessibility tasks included for UI changes
