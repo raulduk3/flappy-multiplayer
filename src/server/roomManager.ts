@@ -44,10 +44,10 @@ export class RoomManager {
     return room;
   }
 
-  handleJoin(sessionId: string, messageId: string) {
+  handleJoin(sessionId: string, messageId: string, payload?: any) {
     const room = this.sessionToRoom.get(sessionId);
     if (!room) return;
-    room.handleJoin(sessionId, messageId);
+    room.handleJoin(sessionId, messageId, payload);
   }
 
   handleFlap(sessionId: string, messageId: string) {

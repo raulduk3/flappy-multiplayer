@@ -9,7 +9,8 @@
     "payload": {
       "type": "object",
       "properties": {
-        "client_info": { "type": "object", "additionalProperties": true }
+        "client_info": { "type": "object", "additionalProperties": true },
+        "color": { "type": "string", "pattern": "^#([0-9a-fA-F]{6})$" }
       },
       "required": [],
       "additionalProperties": true

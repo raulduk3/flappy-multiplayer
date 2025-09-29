@@ -155,7 +155,7 @@ export async function startServer(
       }
 
       if (type === "join.request") {
-        roomManager.handleJoin(sessionId, messageId);
+        roomManager.handleJoin(sessionId, messageId, payload);
         return;
       }
 

@@ -32,6 +32,10 @@ export function buildLogEntry(params: {
   tick?: number;
   final_distance?: number;
   final_score?: number;
+  color?: string;
+  player_id?: string;
+  score?: number;
+  ended_at?: number;
 }): LogEntry {
   const base: LogEntry = {
     timestamp: new Date().toISOString(),
@@ -49,5 +53,9 @@ export function buildLogEntry(params: {
   if (params.final_distance !== undefined)
     extra.final_distance = params.final_distance;
   if (params.final_score !== undefined) extra.final_score = params.final_score;
+  if (params.color !== undefined) extra.color = params.color as any;
+  if (params.player_id !== undefined) extra.player_id = params.player_id as any;
+  if (params.score !== undefined) extra.score = params.score as any;
+  if (params.ended_at !== undefined) extra.ended_at = params.ended_at as any;
   return { ...base, ...extra };
 }

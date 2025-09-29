@@ -39,7 +39,8 @@
               },
               "status": { "const": "alive" },
               "distance": { "type": "number", "minimum": 0 },
-              "score": { "type": "integer", "minimum": 0 }
+              "score": { "type": "integer", "minimum": 0 },
+              "color": { "type": "string", "pattern": "^#([0-9a-fA-F]{6})$" }
             },
             "required": [
               "player_id",
@@ -51,6 +52,44 @@
               "score"
             ],
             "additionalProperties": false
+          }
+        },
+        "participants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "player_id": { "type": "string" },
+              "status": { "enum": ["idle", "active"] },
+              "color": { "type": "string", "pattern": "^#([0-9a-fA-F]{6})$" },
+              "position": {
+                "type": "object",
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" }
+                },
+                "required": ["x", "y"],
+                "additionalProperties": false
+              },
+              "velocity": {
+                "type": "object",
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" }
+                },
+                "required": ["x", "y"],
+                "additionalProperties": false
+              },
+              "distance": { "type": "number", "minimum": 0 }
+            },
+            "required": ["player_id", "status", "color"],
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": { "properties": { "status": { "const": "active" } } },
+                "then": { "required": ["position", "velocity"] }
+              }
+            ]
           }
         }
       },

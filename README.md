@@ -5,10 +5,11 @@ Minimal multiplayer Flappy-style game with a deterministic server-authoritative 
 ## Run
 
 - Install deps: npm ci
-- Dev server: npm run dev (defaults to PORT=3000)
+- Dev server: npm run dev (PORT=3001)
 - Dev client: npm run client:dev (opens Next.js app)
 
-Client WebSocket URL defaults to `ws://localhost:3000` and can be overridden via `NEXT_PUBLIC_WS_URL`.
+Client WebSocket URL when using `npm run client:dev` is set via `NEXT_PUBLIC_WS_URL=ws://localhost:3001`.
+If you start the client a different way, it falls back to `ws://localhost:3000` unless you override `NEXT_PUBLIC_WS_URL`.
 
 ## Controls
 

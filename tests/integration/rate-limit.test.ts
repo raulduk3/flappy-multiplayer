@@ -41,7 +41,7 @@ describe("integration: rate limiting on flaps", () => {
             // Now spam 10 more flaps rapidly within < 1s
             let sent = 0;
             const iv = setInterval(() => {
-              if (sent++ >= 10) {
+              if (sent++ >= 20) {
                 clearInterval(iv);
                 return;
               }

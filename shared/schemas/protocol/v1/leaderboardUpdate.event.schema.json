@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/flappy/protocol/v1/leaderboardUpdate.event.schema.json",
+  "title": "leaderboardUpdate.event",
+  "type": "object",
+  "properties": {
+    "protocol_version": { "const": "1" },
+    "type": { "const": "leaderboardUpdate.event" },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "room_id": { "type": "string" },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "player_id": { "type": "string" },
+              "color": { "type": "string", "pattern": "^#([0-9a-fA-F]{6})$" },
+              "score": { "type": "number", "minimum": 0 },
+              "ended_at": { "type": "integer", "minimum": 0 }
+            },
+            "required": ["player_id", "color", "score", "ended_at"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["room_id", "entries"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["protocol_version", "type", "payload"],
+  "additionalProperties": false
+}

@@ -27,4 +27,28 @@ describe("join.request.schema", () => {
     const msg = { protocol_version: "1", type: "join", payload: {} } as any;
     expect(validate(msg)).toBe(false);
   });
+
+  it("accepts join.request with valid color #RRGGBB", () => {
+    const msg = {
+      protocol_version: "1",
+      type: "join.request",
+      payload: { client_info: { agent: "test" }, color: "#33CC99" },
+    };
+    expect(validate(msg)).toBe(true);
+  });
+
+  it("rejects join.request with invalid color format", () => {
+    const bad1 = {
+      protocol_version: "1",
+      type: "join.request",
+      payload: { color: "#GG0000" },
+    } as any;
+    const bad2 = {
+      protocol_version: "1",
+      type: "join.request",
+      payload: { color: "#123" },
+    } as any;
+    expect(validate(bad1)).toBe(false);
+    expect(validate(bad2)).toBe(false);
+  });
 });

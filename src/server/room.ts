@@ -5,6 +5,10 @@ import { newRunId } from "../shared/ids.js";
 import { step, collidesWithBounds, collidesWithPipe } from "../shared/physics.js";
 import { PhysicsConstants, TrackConfig } from "../shared/constants.js";
 import { getPipesAtTick, getPipeSpacingPx } from "../shared/track.js";
+import type { LeaderboardEntry } from "../shared/types.js";
+
+// Internal leaderboard row with additional fields not exposed in payload
+type LBRow = LeaderboardEntry & { distance: number };
 
 export interface RoomOptions {
   id: string;
@@ -19,6 +23,7 @@ export interface SessionState {
   ws: WebSocket;
   sessionId: string;
   joined: boolean;
+  color?: string;
   activeRunId: string | null;
   state: { x: number; y: number; vx: number; vy: number };
   distance: number;
@@ -46,6 +51,7 @@ export class Room {
   private tick: number = 0; // 60 Hz physics tick
   private onLog?: (entry: any) => void;
   private logger: Logger;
+  private leaderboard: LBRow[] = [];
 
   constructor(opts: RoomOptions) {
     this.id = opts.id;
@@ -69,6 +75,7 @@ export class Room {
       ws,
       sessionId,
       joined: false,
+      color: undefined,
       activeRunId: null,
       state,
       distance: 0,
@@ -144,6 +151,14 @@ export class Room {
             });
             this.onLog?.(entry);
             this.logger.info(entry);
+            // Record on leaderboard and broadcast update
+            this.recordLeaderboardEntry({
+              player_id: sess.sessionId,
+              color: sess.color ?? "#FFCC00",
+              score: sess.score,
+              distance: sess.distance,
+              ended_at: Date.now(),
+            });
             // Reset run to allow restart on next flap
             sess.activeRunId = null;
             sess.pendingFlap = false;
@@ -156,7 +171,18 @@ export class Room {
       this.snapshotTimer = setInterval(() => {
         // For each joined session, send a snapshot including all alive players
         const players = [] as any[];
+        const participants = [] as any[];
         for (const s of this.sessions.values()) {
+          // participants: include all joined sessions
+          if (s.joined) {
+            const base: any = { player_id: s.sessionId, status: s.activeRunId && s.alive ? "active" : "idle", color: s.color };
+            if (base.status === "active") {
+              base.position = { x: s.distance, y: s.state.y };
+              base.velocity = { x: s.state.vx, y: s.state.vy };
+              base.distance = s.distance;
+            }
+            participants.push(base);
+          }
           if (s.activeRunId && s.alive) {
             players.push({
               player_id: s.sessionId,
@@ -166,12 +192,14 @@ export class Room {
               status: "alive",
               distance: s.distance,
               score: s.score,
+              ...(s.color ? { color: s.color } : {}),
             });
           }
         }
         for (const sess of this.sessions.values()) {
           if (!sess.joined) continue;
           const payload: any = { room_id: this.id, tick: this.tick, seed: this.seed, players };
+          if (participants.length > 0) payload.participants = participants;
           const msg = { protocol_version: this.protocolVersion, type: "snapshot.event" as const, payload };
           sendJson(sess.ws, msg);
           const entry = buildLogEntry({
@@ -193,14 +221,23 @@ export class Room {
     return sess;
   }
 
-  handleJoin(sessionId: string, messageId: string) {
+  handleJoin(sessionId: string, messageId: string, payload?: any) {
     const sess = this.sessions.get(sessionId);
     if (!sess) return;
     sess.joined = true;
+    // Capture color if provided and valid-ish (#RRGGBB)
+    const color = payload?.color;
+    if (typeof color === "string" && /^#([0-9a-fA-F]{6})$/.test(color)) {
+      sess.color = color;
+    } else {
+      // default random color if none provided
+      const rnd = () => Math.floor(Math.random() * 256).toString(16).padStart(2, "0");
+      sess.color = `#${rnd()}${rnd()}${rnd()}`;
+    }
     const joinAck = {
       protocol_version: this.protocolVersion,
       type: "join.ack" as const,
-      payload: { room_id: this.id, seed: this.seed },
+      payload: { room_id: this.id, seed: this.seed, color: sess.color },
     };
     sendJson(sess.ws, joinAck);
     const entry = buildLogEntry({
@@ -211,6 +248,7 @@ export class Room {
       message_id: messageId,
       room_id: this.id,
       seed: this.seed,
+      color: sess.color,
     });
     this.onLog?.(entry);
     this.logger.info(entry);
@@ -223,6 +261,7 @@ export class Room {
     // Rate limit 5/s
     const now = Date.now();
     sess.flapTimes = sess.flapTimes.filter((t) => now - t < 1000);
+    // Allow up to 5 flaps in the last 1000ms; 6th within the window is rate-limited
     if (sess.flapTimes.length >= 5) {
       sendJson(sess.ws, { status: "error", reason: "rate_limited", message_id: messageId });
       const entry = buildLogEntry({
@@ -244,7 +283,7 @@ export class Room {
       sess.state = { x: 0, y: startY, vx: 0, vy: 0 };
       sess.distance = 0;
       sess.score = 0;
-  sess.lastPipeIndexPassed = -1;
+      sess.lastPipeIndexPassed = -1;
       sess.alive = true;
       sess.activeRunId = newRunId();
       const runStart = {
@@ -269,9 +308,54 @@ export class Room {
     sess.pendingFlap = true;
   }
 
+  // Maintain and broadcast per-room leaderboard
+  private recordLeaderboardEntry(e: LBRow) {
+    this.leaderboard.push(e);
+    this.leaderboard.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.distance !== a.distance) return b.distance - a.distance; // farther distance wins ties on score
+      return a.ended_at - b.ended_at; // earlier wins remaining ties
+    });
+    if (this.leaderboard.length > 10) this.leaderboard.length = 10;
+    // Broadcast to all joined sessions
+    for (const s of this.sessions.values()) {
+      if (!s.joined) continue;
+      const payload = { room_id: this.id, entries: this.leaderboard.map(({ distance: _d, ...rest }) => rest) };
+      const msg = { protocol_version: this.protocolVersion, type: "leaderboardUpdate.event" as const, payload };
+      sendJson(s.ws, msg);
+      const entry = buildLogEntry({
+        session_id: s.sessionId,
+        direction: "outbound",
+        protocol_version: this.protocolVersion,
+        type: "leaderboardUpdate.event",
+        message_id: uuidv4(),
+        room_id: this.id,
+        // Include the top finisher (if any) for quick indexing; detailed entries are in payload
+        player_id: this.leaderboard[0]?.player_id,
+        score: this.leaderboard[0]?.score,
+        ended_at: this.leaderboard[0]?.ended_at,
+      });
+      this.onLog?.(entry);
+      this.logger.info(entry);
+    }
+  }
+
   removeSession(sessionId: string) {
     const sess = this.sessions.get(sessionId);
     if (!sess) return;
+    // If disconnecting while active, record leaderboard entry
+    if (sess.activeRunId && sess.alive) {
+      this.recordLeaderboardEntry({
+        player_id: sess.sessionId,
+        color: sess.color ?? "#FFCC00",
+        score: sess.score,
+        distance: sess.distance,
+        ended_at: Date.now(),
+      });
+      sess.alive = false;
+      sess.activeRunId = null;
+      sess.pendingFlap = false;
+    }
     try { sess.ws.close(); } catch {}
     this.sessions.delete(sessionId);
     // Stop timers if room becomes empty
@@ -283,3 +367,6 @@ export class Room {
     if (this.snapshotTimer) { try { clearInterval(this.snapshotTimer); } catch {} this.snapshotTimer = null; }
   }
 }
+
+// Leaderboard helpers
+// (intentionally no exports from this module)

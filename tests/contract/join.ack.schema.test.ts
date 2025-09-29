@@ -18,7 +18,7 @@ describe("join.ack.schema", () => {
     const msg = {
       protocol_version: "1",
       type: "join.ack",
-      payload: { room_id: "r1", seed: "seed-123" },
+      payload: { room_id: "r1", seed: "seed-123", color: "#112233" },
     };
     expect(validate(msg)).toBe(true);
   });
@@ -30,5 +30,14 @@ describe("join.ack.schema", () => {
       payload: { room: "r1" },
     } as any;
     expect(validate(bad)).toBe(false);
+  });
+
+  it("rejects join.ack with invalid color format", () => {
+    const msg = {
+      protocol_version: "1",
+      type: "join.ack",
+      payload: { room_id: "r1", seed: "seed-123", color: "#12ZZ99" },
+    } as any;
+    expect(validate(msg)).toBe(false);
   });
 });

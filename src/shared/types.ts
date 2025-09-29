@@ -36,6 +36,11 @@ export interface LogEntry {
   tick?: number;
   final_distance?: number;
   final_score?: number;
+  // Additional optional fields for richer analytics
+  color?: string; // player color on join
+  player_id?: string; // player involved (e.g., leaderboard update)
+  score?: number; // score at event time (e.g., leaderboard update)
+  ended_at?: number; // ms epoch when run ended (e.g., leaderboard update)
 }
 
 // Game-specific shared types
@@ -54,6 +59,8 @@ export interface ActivePlayerState {
   status: "alive";
   distance: number;
   score: number;
+  // Additive: player color when available (server includes when set)
+  color?: string; // #RRGGBB
 }
 
 export interface SnapshotPayload {
@@ -61,6 +68,8 @@ export interface SnapshotPayload {
   tick: number;
   seed: string;
   players: ActivePlayerState[];
+  // Additive: full list of room participants (idle + active)
+  participants?: Participant[];
 }
 
 export interface RunEndPayload {
@@ -69,4 +78,29 @@ export interface RunEndPayload {
   final_distance: number;
   final_score: number;
   reason: string;
+}
+
+// New additive shared types (003-extend-the-game)
+export type ParticipantStatus = "idle" | "active";
+
+export interface Participant {
+  player_id: string;
+  status: ParticipantStatus;
+  color: string; // #RRGGBB
+  position?: Vec2; // present when status=active
+  velocity?: Vec2; // present when status=active
+  distance?: number; // present when status=active
+}
+
+export interface LeaderboardEntry {
+  player_id: string;
+  color: string; // #RRGGBB
+  score: number; // distance
+  ended_at: number; // ms epoch
+}
+
+// Additive: Leaderboard update payload (003-extend-the-game)
+export interface LeaderboardUpdatePayload {
+  room_id: string;
+  entries: LeaderboardEntry[];
 }

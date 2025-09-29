@@ -10,9 +10,10 @@
       "type": "object",
       "properties": {
         "room_id": { "type": "string" },
-        "seed": { "type": "string" }
+        "seed": { "type": "string" },
+        "color": { "type": "string", "pattern": "^#([0-9a-fA-F]{6})$" }
       },
-      "required": ["room_id", "seed"],
+      "required": ["room_id", "seed", "color"],
       "additionalProperties": false
     }
   },

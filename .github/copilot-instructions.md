@@ -30,4 +30,5 @@ Node.js >=20 (observed local: v24.6.0): Follow standard conventions
 - 001-establish-the-communication: Added Node.js >=20 (observed local: v24.6.0) + WebSocket server (ws), JSON Schema validator (ajv), uuid, structured logging (pino)
 
 <!-- MANUAL ADDITIONS START -->
+- 003-extend-the-game: Client overlay now derives from live active participants (score desc, distance tie-break). Logging enriched with color on join and leaderboard top entry fields for analytics.
 <!-- MANUAL ADDITIONS END -->
